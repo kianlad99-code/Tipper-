@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Tipper">
+<meta name="theme-color" content="#0b5b45">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+<title>Tipper</title>
+<style>
+:root {
+  --bg: #f1f5ec; --ink: #0b5b45; --accent: #c9a227; --accent-ink: #062b20;
+  --track: #cfe0d2; --btn: rgba(11,91,69,.12); --scrim: rgba(6,43,32,.45);
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #06241c; --ink: #e8f1ea; --accent: #d8b13a; --accent-ink: #06241c;
+    --track: #14473a; --btn: rgba(232,241,234,.14); --scrim: rgba(0,0,0,.6); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #06241c; --ink: #e8f1ea; --accent: #d8b13a; --accent-ink: #06241c;
+  --track: #14473a; --btn: rgba(232,241,234,.14); --scrim: rgba(0,0,0,.6); color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: "Avenir Next", "Helvetica Neue", system-ui, -apple-system, "Segoe UI", sans-serif;
+  -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation; overflow: hidden; overscroll-behavior: none; -webkit-touch-callout: none;
+}
+#pad {
+  position: relative; isolation: isolate; height: 100%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  cursor: pointer; padding: 64px 16px 96px;
+}
+#pad::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: .13;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'%3E%3Cg fill='none' stroke='%23888' stroke-width='1.6'%3E%3Crect x='16' y='16' width='40' height='40'/%3E%3Crect x='16' y='16' width='40' height='40' transform='rotate(45 36 36)'/%3E%3Ccircle cx='36' cy='36' r='6'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 72px 72px; background-position: center;
+}
+button { font: inherit; font-weight: 600; font-size: 1rem; color: var(--ink); background: var(--btn); border: 0; border-radius: 14px; padding: 13px 20px; }
+button:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+#dhikr {
+  font-family: "Amiri", "Noto Naskh Arabic", "Geeza Pro", "Scheherazade New", serif;
+  font-size: clamp(2.2rem, 11vw, 3.4rem); font-weight: 700; line-height: 1.5;
+  background: transparent; padding: 2px 20px; border-bottom: 3px solid var(--accent); border-radius: 0;
+}
+#tr { margin-top: 8px; font-weight: 700; font-size: 1.05rem; }
+#mean { font-size: .95rem; opacity: .7; margin-bottom: 14px; text-align: center; }
+#ringwrap { --ring: min(70vw, 38vh, 320px); position: relative; width: var(--ring); height: var(--ring); }
+#ringwrap svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+#ringwrap circle { fill: none; stroke-width: 9; }
+#rtrack { stroke: var(--track); }
+#rfill { stroke: var(--accent); stroke-linecap: round; stroke-dasharray: 565.49; stroke-dashoffset: 565.49; transition: stroke-dashoffset .12s ease-out; }
+#count {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  font-size: calc(var(--ring) * .44); font-weight: 800; letter-spacing: -.04em; line-height: 1;
+  font-variant-numeric: tabular-nums; transition: transform .08s ease-out;
+}
+#count.bump { transform: scale(1.07); }
+#ringwrap.flash { animation: flash .6s ease-out; }
+@keyframes flash { 0% { transform: scale(1); } 35% { transform: scale(1.06); } 100% { transform: scale(1); } }
+#hint { margin-top: 14px; font-size: .95rem; opacity: .6; text-align: center; }
+#total { margin-top: 14px; font-size: .95rem; opacity: .7; font-variant-numeric: tabular-nums; }
+#gear { position: absolute; top: 14px; left: 14px; padding: 10px 16px; }
+#rounds {
+  position: absolute; top: 14px; right: 14px; min-width: 64px; padding: 8px 14px; border-radius: 18px;
+  background: var(--accent); color: var(--accent-ink); text-align: center; line-height: 1;
+}
+#rounds b { display: block; font-size: 2rem; font-weight: 800; }
+#rounds span { font-size: .75rem; font-weight: 600; }
+#rounds.pop { animation: pop .55s ease-out; }
+@keyframes pop { 0% { transform: scale(1); } 40% { transform: scale(1.35); } 100% { transform: scale(1); } }
+#tools { position: absolute; left: 0; right: 0; bottom: 16px; display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; padding: 0 12px; }
+#sheet { position: fixed; inset: 0; z-index: 20; display: none; align-items: flex-end; background: var(--scrim); cursor: default; }
+#sheet.open { display: flex; }
+#panel {
+  width: 100%; max-width: 520px; margin: 0 auto; background: var(--bg);
+  border-radius: 24px 24px 0 0; padding: 22px 20px calc(22px + env(safe-area-inset-bottom, 0px));
+}
+#panel h2 { margin: 0 0 14px; font-size: 1.25rem; }
+.row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.row > span { font-weight: 600; }
+.chips { display: flex; gap: 8px; }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+#done { width: 100%; background: var(--accent); color: var(--accent-ink); margin-top: 6px; }
+@media (max-height: 560px) {
+  #mean, #hint { display: none; }
+  #ringwrap { --ring: min(60vw, 42vh); }
+  #pad { padding: 56px 12px 80px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #count, #rfill { transition: none; }
+  #rounds.pop, #ringwrap.flash { animation: none; }
+}
+</style>
+</head>
+<body>
+<div id="pad" role="button" aria-label="Zählen">
+  <button id="gear" type="button">Einstellungen</button>
+  <div id="rounds" aria-label="Geschaffte Runden"><b id="roundsNum">0</b><span id="roundsLbl">mal 100</span></div>
+  <button id="dhikr" type="button" lang="ar" dir="rtl" aria-label="Dhikr wechseln"></button>
+  <div id="tr"></div>
+  <div id="mean"></div>
+  <div id="ringwrap">
+    <svg viewBox="0 0 200 200" aria-hidden="true"><circle id="rtrack" cx="100" cy="100" r="90"/><circle id="rfill" cx="100" cy="100" r="90"/></svg>
+    <div id="count" aria-live="polite">0</div>
+  </div>
+  <div id="total">Gesamt 0</div>
+  <div id="hint">Tippe irgendwo zum Zählen. Den arabischen Text antippen zum Wechseln.</div>
+  <div id="tools">
+    <button id="undo" type="button">Zurück</button>
+    <button id="reset" type="button">Alles auf 0</button>
+  </div>
+</div>
+<div id="sheet">
+  <div id="panel" role="dialog" aria-label="Einstellungen">
+    <h2>Einstellungen</h2>
+    <div class="row"><span>Ziel pro Runde</span>
+      <div class="chips"><button class="chip" data-t="33" type="button">33</button><button class="chip" data-t="99" type="button">99</button><button class="chip" data-t="100" type="button">100</button></div></div>
+    <div class="row"><span>Ton beim Tippen</span><button id="tSound" type="button"></button></div>
+    <div class="row"><span>Vibration</span><button id="tVib" type="button"></button></div>
+    <div class="row"><span>Nächster Dhikr nach jeder Runde</span><button id="tAuto" type="button"></button></div>
+    <div class="row" id="wakeRow"><span>Bildschirm anlassen</span><button id="tWake" type="button"></button></div>
+    <button id="done" type="button">Fertig</button>
+  </div>
+</div>
+<script>
+(function () {
+  var KEY = "tipper-v1", C = 565.49;
+  var S = { count: 0, rounds: 0, pi: 0, target: 100, total: 0, sound: false, vib: true, wake: false, auto: false };
+  var P = [
+    ["سُبْحَانَ ٱللَّٰهِ", "SubhanAllah", "Gepriesen sei Allah"],
+    ["ٱلْحَمْدُ لِلَّٰهِ", "Alhamdulillah", "Alles Lob gebührt Allah"],
+    ["ٱللَّٰهُ أَكْبَرُ", "Allahu Akbar", "Allah ist am größten"],
+    ["لَا إِلَٰهَ إِلَّا ٱللَّٰهُ", "La ilaha illallah", "Es gibt keinen Gott außer Allah"],
+    ["أَسْتَغْفِرُ ٱللَّٰهَ", "Astaghfirullah", "Ich bitte Allah um Vergebung"]
+  ];
+  var $ = function (id) { return document.getElementById(id); };
+  var hasTotal = false;
+  try {
+    var sv = JSON.parse(localStorage.getItem(KEY) || "null");
+    if (sv && typeof sv === "object") {
+      for (var k in S) if (typeof sv[k] === typeof S[k]) S[k] = sv[k];
+      hasTotal = typeof sv.total === "number";
+    }
+  } catch (e) {}
+  if (P[S.pi] === undefined) S.pi = 0;
+  if ([33, 99, 100].indexOf(S.target) < 0) S.target = 100;
+  if (S.count < 0 || S.count >= S.target) S.count = 0;
+  if (!hasTotal) S.total = S.rounds * S.target + S.count;
+
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+  function buzz(p) { if (S.vib) { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) {} } }
+
+  var ac = null;
+  function beep(f, d, v, t0) {
+    if (!S.sound) return;
+    try {
+      ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+      if (ac.state === "suspended") ac.resume();
+      var o = ac.createOscillator(), g = ac.createGain(), t = ac.currentTime + (t0 || 0);
+      o.type = "sine"; o.frequency.value = f;
+      g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+      o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + d);
+    } catch (e) {}
+  }
+
+  var wl = null;
+  function wake() {
+    try {
+      if (S.wake && navigator.wakeLock && !wl) {
+        navigator.wakeLock.request("screen").then(function (l) { wl = l; l.addEventListener("release", function () { wl = null; }); }).catch(function () {});
+      } else if (!S.wake && wl) { wl.release(); wl = null; }
+    } catch (e) {}
+  }
+  document.addEventListener("visibilitychange", function () { if (document.visibilityState === "visible") wake(); });
+  if (!navigator.wakeLock) $("wakeRow").style.display = "none";
+
+  function render() {
+    var p = P[S.pi];
+    $("dhikr").textContent = p[0]; $("tr").textContent = p[1]; $("mean").textContent = p[2];
+    $("count").textContent = S.count;
+    $("rfill").style.strokeDashoffset = C * (1 - S.count / S.target);
+    $("roundsNum").textContent = S.rounds;
+    $("roundsLbl").textContent = "mal " + S.target;
+    $("total").textContent = "Gesamt " + S.total;
+    $("hint").hidden = S.total > 0;
+    $("tSound").textContent = S.sound ? "An" : "Aus"; $("tSound").setAttribute("aria-pressed", S.sound);
+    $("tVib").textContent = S.vib ? "An" : "Aus"; $("tVib").setAttribute("aria-pressed", S.vib);
+    $("tWake").textContent = S.wake ? "An" : "Aus"; $("tWake").setAttribute("aria-pressed", S.wake);
+    $("tAuto").textContent = S.auto ? "An" : "Aus"; $("tAuto").setAttribute("aria-pressed", S.auto);
+    var chips = document.querySelectorAll(".chip");
+    for (var i = 0; i < chips.length; i++) chips[i].setAttribute("aria-pressed", String(+chips[i].dataset.t === S.target));
+  }
+
+  function tap() {
+    S.count += 1; S.total += 1;
+    var c = $("count"); c.classList.add("bump"); setTimeout(function () { c.classList.remove("bump"); }, 80);
+    if (S.count >= S.target) {
+      S.rounds += 1; S.count = 0;
+      if (S.auto) S.pi = (S.pi + 1) % P.length;
+      var r = $("rounds"), w = $("ringwrap");
+      r.classList.remove("pop"); w.classList.remove("flash"); void r.offsetWidth;
+      r.classList.add("pop"); w.classList.add("flash");
+      buzz([60, 40, 120]); beep(523, .5, .12); beep(784, .7, .12, .18);
+    } else { beep(660, .05, .05); }
+    render(); save();
+  }
+  function undo() {
+    if (S.count > 0) S.count -= 1;
+    else if (S.rounds > 0) { S.rounds -= 1; S.count = S.target - 1; }
+    else return;
+    if (S.total > 0) S.total -= 1;
+    buzz(40); render(); save();
+  }
+  var rb = $("reset"), armed = false, timer = null;
+  function disarm() { armed = false; rb.textContent = "Alles auf 0"; clearTimeout(timer); }
+  function resetAll() {
+    if (!armed) { armed = true; rb.textContent = "Sicher? Nochmal tippen"; timer = setTimeout(disarm, 3000); return; }
+    disarm(); S.count = 0; S.rounds = 0; S.total = 0; buzz(40); render(); save();
+  }
+  function stop(id, fn) { $(id).addEventListener("click", function (e) { e.stopPropagation(); fn(); }); }
+
+  $("pad").addEventListener("pointerdown", function (e) { if (e.target.closest("button")) return; tap(); });
+  stop("dhikr", function () { S.pi = (S.pi + 1) % P.length; render(); save(); });
+  stop("undo", undo); stop("reset", resetAll);
+  stop("gear", function () { $("sheet").classList.add("open"); });
+  stop("done", function () { $("sheet").classList.remove("open"); });
+  $("sheet").addEventListener("click", function (e) { e.stopPropagation(); if (e.target === $("sheet")) $("sheet").classList.remove("open"); });
+  var chips = document.querySelectorAll(".chip");
+  for (var i = 0; i < chips.length; i++) chips[i].addEventListener("click", function () {
+    S.target = +this.dataset.t; if (S.count >= S.target) S.count = 0; render(); save();
+  });
+  stop("tSound", function () { S.sound = !S.sound; render(); save(); beep(660, .08, .08); });
+  stop("tVib", function () { S.vib = !S.vib; render(); save(); buzz(40); });
+  stop("tWake", function () { S.wake = !S.wake; wake(); render(); save(); });
+  stop("tAuto", function () { S.auto = !S.auto; render(); save(); });
+  document.addEventListener("keydown", function (e) {
+    if ((e.key === " " || e.key === "Enter") && e.target === document.body && !$("sheet").classList.contains("open")) { e.preventDefault(); tap(); }
+  });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") $("sheet").classList.remove("open"); });
+  try { if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js"); } catch (e) {}
+  render(); wake();
+})();
+</script>
+</body>
+</html>
